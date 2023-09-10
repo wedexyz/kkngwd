@@ -7,18 +7,23 @@
 </head>
 <body>
  <button onclick="on_1()">lampu 1 hidup</button>
- <button onclick="on_2()">lampu 2 hidup</button>
- <button onclick="on_3()">lampu 3 hidup</button>
+ 
  <hr>
 
  <button onclick="off_1()">lampu 1 mati</button>
- <button onclick="off_2()">lampu 2 mati</button>
- <button onclick="off_3()">lampu 3 mati</button>
-
+ 
  <hr>
+  <div id="container-speed" class="chart-container"></div>
  <div id="chartdiv1" style = "height: 315px;"></div>
+ <hr>
  <script src="clientjs/jquery-3.2.1.slim.min.js"></script>
  <script src="clientjs/core.js"></script>
+ <script src="https://code.highcharts.com/highcharts.js"></script>
+<script src="https://code.highcharts.com/highcharts-more.js"></script>
+<script src="https://code.highcharts.com/modules/solid-gauge.js"></script>
+<script src="https://code.highcharts.com/modules/exporting.js"></script>
+<script src="https://code.highcharts.com/modules/export-data.js"></script>
+<script src="https://code.highcharts.com/modules/accessibility.js"></script>
  <script src="clientjs/chart.js"></script>
  <script src="clientjs/anim.js"></script>
 <script src= "clientjs/firebase.js"></script>
@@ -58,6 +63,127 @@ function off_3(){
   db.ref("/relay3").set("0");
   }
 
+  //gauge
+  var gaugeOptions = {
+    chart: {
+        type: 'solidgauge'
+    },
+
+    title: null,
+
+    pane: {
+        center: ['50%', '85%'],
+        size: '140%',
+        startAngle: -90,
+        endAngle: 90,
+        background: {
+            backgroundColor:
+                Highcharts.defaultOptions.legend.backgroundColor || '#EEE',
+            innerRadius: '60%',
+            outerRadius: '100%',
+            shape: 'arc'
+        }
+    },
+
+    exporting: {
+        enabled: false
+    },
+
+    tooltip: {
+        enabled: false
+    },
+
+    // the value axis
+    yAxis: {
+        stops: [
+            [0.1, '#55BF3B'], // green
+            [0.5, '#DDDF0D'], // yellow
+            [0.9, '#DF5353'] // red
+        ],
+        lineWidth: 0,
+        tickWidth: 0,
+        minorTickInterval: null,
+        tickAmount: 2,
+        title: {
+            y: -70
+        },
+        labels: {
+            y: 16
+        }
+    },
+
+    plotOptions: {
+        solidgauge: {
+            dataLabels: {
+                y: 5,
+                borderWidth: 0,
+                useHTML: true
+            }
+        }
+    }
+};
+
+// The speed gauge
+var chartSpeed = Highcharts.chart('container-speed', Highcharts.merge(gaugeOptions, {
+    yAxis: {
+        min: 0,
+        max:1000,
+        title: {
+            text: 'Speed'
+        }
+    },
+
+    credits: {
+        enabled: false
+    },
+
+    series: [{
+        name: 'Speed',
+        data: [0],
+        dataLabels: {
+            format:
+                '<div style="text-align:center">' +
+                '<span style="font-size:25px">{y}</span><br/>' +
+                '<span style="font-size:12px;opacity:0.4">km/h</span>' +
+                '</div>'
+        },
+        tooltip: {
+            valueSuffix: ' km/h'
+        }
+    }]
+
+}));
+
+
+// Bring life to the dials
+setInterval(function () {
+    // Speed
+    var point,
+        newVal,
+        inc;
+
+    if (chartSpeed) {
+        point = chartSpeed.series[0].points[0];
+        tes.on("value", function(snapshot) {
+            visits=  (snapshot.val());
+            inc = (snapshot.val());
+             newVal =  parseFloat(inc);
+                });
+        
+      
+
+        if (newVal < 0 || newVal > 2000) {
+            newVal = point.y - inc;
+        }
+
+        point.update(newVal);
+    }
+
+    
+}, 2000);
+
+  
+  //chart
   am4core.ready(function() {
     
     // Themes begin
